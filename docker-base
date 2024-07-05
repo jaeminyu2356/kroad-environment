@@ -1,0 +1,45 @@
+# Base image with ROS 2 Humble Hawksbill
+FROM osrf/ros:humble-desktop
+
+# Set environment variables for non-interactive installation
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    cmake \
+    git \
+    wget \
+    libeigen3-dev \
+    libpcl-dev \
+    python3-pip \
+    gcc \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install ROS 2 packages for PCL integration
+RUN apt-get update && apt-get install -y \
+    ros-humble-pcl-conversions \
+    ros-humble-pcl-msgs \
+    ros-humble-pcl-ros \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install PyTorch
+RUN pip3 install torch torchvision torchaudio
+
+# Set up ROS 2 workspace
+WORKDIR /root/ros2_ws
+RUN mkdir -p src
+COPY . src/
+
+# Install dependencies and build the workspace
+RUN . /opt/ros/humble/setup.sh && \
+    apt-get update && \
+    rosdep init && \
+    rosdep update && \
+    rosdep install --from-paths src --ignore-src -r -y && \
+    colcon build
+
+# Source the ROS 2 setup script
+CMD ["bash", "-c", "source /opt/ros/humble/setup.sh && source /root/ros2_ws/install/setup.sh && bash"]
+
