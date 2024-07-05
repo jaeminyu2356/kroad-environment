@@ -32,14 +32,6 @@ WORKDIR /root/ros2_ws
 RUN mkdir -p src
 COPY . src/
 
-# Install dependencies and build the workspace
-RUN . /opt/ros/humble/setup.sh && \
-    apt-get update && \
-    rosdep init && \
-    rosdep update && \
-    rosdep install --from-paths src --ignore-src -r -y && \
-    colcon build
-
 # Source the ROS 2 setup script
 CMD ["bash", "-c", "source /opt/ros/humble/setup.sh && source /root/ros2_ws/install/setup.sh && bash"]
 
