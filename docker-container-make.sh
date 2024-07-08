@@ -8,5 +8,4 @@ docker run -it \
 -v /docker_mounted/kroad/:/root/mounted_folder/ \
 --hostname kroad \
 --network host \
---gpus all \
 --name kroad kroad:V.1 bash
