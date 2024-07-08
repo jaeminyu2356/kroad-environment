@@ -9,8 +9,6 @@ sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubun
 sudo apt-get update
 sudo apt-get install docker-ce docker-ce-cli containerd.io
 
-sudo systemctl status docker
-
 apt-get install x11-apps
 
 #sudo 권한 없이 docker 에게 권한 부여
