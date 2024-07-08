@@ -25,3 +25,6 @@ docker ps
 
 docker build -f docker-base -t kroad:V.1 .
 docker ps -a
+
+#docker-container-make.sh
+. docker-contatiner-make.sh
