@@ -1,3 +1,6 @@
+sudo apt update
+sudo apt upgrade
+
 docker build -f docker-base -t kroad:V.1 .
 
 docker run -it \
