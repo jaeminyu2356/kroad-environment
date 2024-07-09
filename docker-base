@@ -26,7 +26,8 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 #utility
-RUN apt-get install zip unzip
+RUN apt-get install zip unzip \
+    apt-get install terminator
 
 # Install PyTorch
 RUN pip3 install torch torchvision
