@@ -27,8 +27,8 @@ RUN apt-get update && apt-get install -y \
 
 #utility
 RUN apt-get install zip unzip \
-    apt-get install terminator \
-    apt-get install vim
+    terminator \
+    vim
 
 # Install PyTorch
 RUN pip3 install torch torchvision
