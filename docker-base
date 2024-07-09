@@ -25,8 +25,11 @@ RUN apt-get update && apt-get install -y \
     ros-humble-vison-msgs \
     && rm -rf /var/lib/apt/lists/*
 
+#utility
+RUN apt-get install zip unzip
+
 # Install PyTorch
-RUN pip3 install torch torchvision torchaudio
+RUN pip3 install torch torchvision
 
 # Set up ROS 2 workspace
 WORKDIR /root/ros2_ws
