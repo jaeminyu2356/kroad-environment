@@ -22,8 +22,8 @@ RUN apt-get update && apt-get install -y \
     ros-humble-pcl-conversions \
     ros-humble-pcl-msgs \
     ros-humble-pcl-ros \
+    ros-humble-diagnostic-updater \
     && rm -rf /var/lib/apt/lists/*
-
 
 # Install utils
 RUN apt-get update && apt-get install -y \
@@ -36,10 +36,8 @@ RUN apt-get update && apt-get install -y \
 RUN pip3 install torch torchvision
 
 # Set up ROS 2 workspace
-WORKDIR /root/ros2_ws
-RUN mkdir -p src
-COPY . src/
+cd /root/
+git clone https://github.com/KOREATECH-KROAD/version-up-2024.git
 
 # Source the ROS 2 setup script
 CMD ["bash", "-c", "source /opt/ros/humble/setup.sh && source /root/ros2_ws/install/setup.sh && bash"]
-
