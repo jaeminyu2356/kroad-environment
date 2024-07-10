@@ -1,6 +1,7 @@
 sudo apt update
 sudo apt upgrade
 
+cd /home/jm/kroad-environment/files
 docker build -f docker-base -t kroad:V.2.1 .
 
 docker run -it \
