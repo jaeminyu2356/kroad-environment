@@ -38,7 +38,7 @@ RUN pip3 install torch torchvision
 WORKDIR /root
 
 # Set up ROS 2 workspace
-git clone https://github.com/KOREATECH-KROAD/version-up-2024.git
+RUN git clone https://github.com/KOREATECH-KROAD/version-up-2024.git
 
 # Source the ROS 2 setup script
 CMD ["bash", "-c", "source /opt/ros/humble/setup.sh && source /root/ros2_ws/install/setup.sh && bash"]
