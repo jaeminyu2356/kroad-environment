@@ -35,8 +35,9 @@ RUN apt-get update && apt-get install -y \
 # Install PyTorch
 RUN pip3 install torch torchvision
 
+WORKDIR /root
+
 # Set up ROS 2 workspace
-cd /root/
 git clone https://github.com/KOREATECH-KROAD/version-up-2024.git
 
 # Source the ROS 2 setup script
