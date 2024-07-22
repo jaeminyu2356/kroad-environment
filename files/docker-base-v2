@@ -1,0 +1,81 @@
+# Base image with CUDA 11.3.1 on Ubuntu 22.04
+FROM nvidia/cuda:11.3.1-devel-ubuntu22.04
+
+# Set environment variables for non-interactive installation
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    cmake \
+    git \
+    wget \
+    libeigen3-dev \
+    libpcl-dev \
+    python3-pip \
+    gcc \
+    g++ \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    openmpi-bin \
+    openmpi-common \
+    libopenmpi-dev \
+    libgtk2.0-dev \
+    zip \
+    unzip \
+    terminator \
+    vim \
+    software-properties-common \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install ROS 2 Humble Hawksbill
+RUN add-apt-repository universe && \
+    apt-get update && \
+    apt-get install -y \
+    curl && \
+    curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.key | apt-key add - && \
+    sh -c 'echo "deb [arch=amd64,arm64,armhf] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" > /etc/apt/sources.list.d/ros2-latest.list' && \
+    apt-get update && apt-get install -y \
+    ros-humble-desktop && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install ROS 2 packages for PCL integration
+RUN apt-get update && apt-get install -y \
+    ros-humble-pcl-conversions \
+    ros-humble-pcl-msgs \
+    ros-humble-pcl-ros \
+    ros-humble-diagnostic-updater \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Miniconda
+ENV CONDA_DIR /opt/conda
+RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
+    /bin/bash ~/miniconda.sh -b -p /opt/conda && \
+    rm ~/miniconda.sh
+
+# Put conda in path so we can use conda activate
+ENV PATH=$CONDA_DIR/bin:$PATH
+
+# Install Python and PyTorch with Conda
+RUN conda install -y python=3.8
+RUN conda install -y pytorch==1.10.1 torchvision==0.11.2 torchaudio==0.10.1 cudatoolkit=11.3 -c pytorch
+
+# Install Python packages with pip
+RUN pip install Pillow==8.4.0 \
+    tqdm \
+    torchpack \
+    mmcv==1.4.0 \
+    mmcv-full==1.4.0 \
+    mmdet==2.20.0 \
+    nuscenes-devkit \
+    mpi4py==3.0.3 \
+    numba==0.48.0
+
+WORKDIR /root
+
+# Clone the repository
+RUN git clone https://github.com/KOREATECH-KROAD/version-up-2024.git
+
+# Set up ROS 2 workspace and source the setup script
+CMD ["bash", "-c", "source /opt/ros/humble/setup.sh && source /root/ros2_ws/install/setup.sh && bash"]
+
