@@ -1,76 +1,89 @@
-# Base image with ROS 2 Humble Hawksbill
-FROM osrf/ros:humble-desktop
+# Use NVIDIA's CUDA 12.5.1 image as the base image
+FROM nvcr.io/nvidia/tensorrt:24.06-py3
 
-# Set environment variables for non-interactive installation
+# Set environment variable to avoid interactive prompts
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install dependencies
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    cmake \
-    git \
+# Install necessary dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
-    libeigen3-dev \
-    libpcl-dev \
-    python3-pip \
-    gcc \
+    build-essential \
     g++ \
+    gcc \
     libgl1-mesa-glx \
     libglib2.0-0 \
     openmpi-bin \
     openmpi-common \
     libopenmpi-dev \
     libgtk2.0-dev \
-    zip \
-    unzip \
-    terminator \
-    vim \
-    software-properties-common \
+    git \
+    curl \
+    ca-certificates \
+    locales \
+    gnupg2 \
+    lsb-release \
+    zlib1g-dev \
+    libffi-dev \
+    libssl-dev \
+    libbz2-dev \
+    libreadline-dev \
+    libsqlite3-dev \
+    libncurses5-dev \
+    libncursesw5-dev \
+    xz-utils \
+    tk-dev \
+    liblzma-dev \
+    libgdbm-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Install CUDA 11.3.1
-RUN wget https://developer.download.nvidia.com/compute/cuda/11.3.1/local_installers/cuda_11.3.1_465.19.01_linux.run && \
-    sh cuda_11.3.1_465.19.01_linux.run --silent --toolkit --override && \
-    rm cuda_11.3.1_465.19.01_linux.run
+# Download and install Python 3.8
+RUN wget https://www.python.org/ftp/python/3.8.16/Python-3.8.16.tgz && \
+    tar -xf Python-3.8.16.tgz && \
+    cd Python-3.8.16 && \
+    ./configure --enable-optimizations && \
+    make -j$(nproc) && \
+    make altinstall && \
+    cd .. && \
+    rm -rf Python-3.8.16 Python-3.8.16.tgz
 
-# Install cuDNN 8.6.0
-RUN wget https://developer.download.nvidia.com/compute/redist/cudnn/v8.6.0/cudnn-11.3-linux-x64-v8.6.0.163.tgz && \
-    tar -xzvf cudnn-11.3-linux-x64-v8.6.0.163.tgz && \
-    cp cuda/include/cudnn*.h /usr/local/cuda/include && \
-    cp cuda/lib64/libcudnn* /usr/local/cuda/lib64 && \
-    chmod a+r /usr/local/cuda/include/cudnn*.h /usr/local/cuda/lib64/libcudnn* && \
-    rm -rf cuda cudnn-11.3-linux-x64-v8.6.0.163.tgz
+# Install pip for Python 3.8
+RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
+    python3.8 get-pip.py && \
+    rm get-pip.py
 
-# Set environment variables for CUDA
-ENV PATH=/usr/local/cuda-11.3/bin${PATH:+:${PATH}}
-ENV LD_LIBRARY_PATH=/usr/local/cuda-11.3/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+# Upgrade pip
+RUN python3.8 -m pip install --upgrade pip
 
-# Install Miniconda
-ENV CONDA_DIR /opt/conda
-RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
-    /bin/bash ~/miniconda.sh -b -p /opt/conda && \
-    rm ~/miniconda.sh
+# Setup locale
+RUN locale-gen en_US en_US.UTF-8 && \
+    update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
 
-# Put conda in path so we can use conda activate
-ENV PATH=$CONDA_DIR/bin:$PATH
+# Add ROS 2 Humble repository and key
+RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | apt-key add - && \
+    sh -c 'echo "deb http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" > /etc/apt/sources.list.d/ros2-latest.list'
 
-# Install Python and PyTorch with Conda
-RUN conda install -y python=3.8
-RUN conda install -y pytorch==1.10.1 torchvision==0.11.2 torchaudio==0.10.1 cudatoolkit=11.3 -c pytorch
+# Install ROS 2 Humble
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ros-humble-desktop \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Install Python packages with pip
-RUN pip install Pillow==8.4.0 \
-    tqdm \
-    torchpack \
-    mmcv==1.4.0 \
-    mmcv-full==1.4.0 \
-    mmdet==2.20.0 \
-    nuscenes-devkit \
-    mpi4py==3.0.3 \
-    numba==0.48.0
+# Source ROS 2 setup script
+SHELL ["/bin/bash", "-c"]
+RUN echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
 
-WORKDIR /root
+# Install Python packages
+RUN python3.8 -m pip install torch==1.10.1+cu113 torchvision==0.11.2+cu113 torchaudio==0.10.1+cu113 -f https://download.pytorch.org/whl/torch_stable.html
+RUN python3.8 -m pip install Pillow==8.4.0
+RUN python3.8 -m pip install tqdm
+RUN python3.8 -m pip install torchpack
+RUN python3.8 -m pip install numpy==1.21.5
+RUN python3.8 -m pip install mmcv==1.4.0 
+RUN python3.8 -m pip install mmcv-full==1.4.0 
+RUN python3.8 -m pip install mmdet==2.20.0
+RUN python3.8 -m pip install nuscenes-devkit
+RUN python3.8 -m pip install mpi4py==3.0.3
+RUN python3.8 -m pip install numba==0.48.0
 
-# Set up ROS 2 workspace and source the setup script
-CMD ["bash", "-c", "source /opt/ros/humble/setup.sh && source /root/ros2_ws/install/setup.sh && bash"]
-
+# Clean up
+RUN apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
