@@ -35,6 +35,14 @@ RUN apt-get update && apt-get install -y \
 # Install PyTorch
 RUN pip3 install torch torchvision
 
+RUN pip install pandas \
+    requests \
+    tqdm \
+    seaborn \
+    visualizer \
+    "numpy<2" \
+    numpy==1.24.3
+
 WORKDIR /root
 
 # Set up ROS 2 workspace
