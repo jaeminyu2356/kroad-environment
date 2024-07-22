@@ -33,6 +33,14 @@ RUN wget https://developer.download.nvidia.com/compute/cuda/11.3.1/local_install
     sh cuda_11.3.1_465.19.01_linux.run --silent --toolkit --override && \
     rm cuda_11.3.1_465.19.01_linux.run
 
+# Install cuDNN 8.6.0
+RUN wget https://developer.download.nvidia.com/compute/redist/cudnn/v8.6.0/cudnn-11.3-linux-x64-v8.6.0.163.tgz && \
+    tar -xzvf cudnn-11.3-linux-x64-v8.6.0.163.tgz && \
+    cp cuda/include/cudnn*.h /usr/local/cuda/include && \
+    cp cuda/lib64/libcudnn* /usr/local/cuda/lib64 && \
+    chmod a+r /usr/local/cuda/include/cudnn*.h /usr/local/cuda/lib64/libcudnn* && \
+    rm -rf cuda cudnn-11.3-linux-x64-v8.6.0.163.tgz
+
 # Set environment variables for CUDA
 ENV PATH=/usr/local/cuda-11.3/bin${PATH:+:${PATH}}
 ENV LD_LIBRARY_PATH=/usr/local/cuda-11.3/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
